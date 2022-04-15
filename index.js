@@ -1,9 +1,12 @@
 // run "npm install . "
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Install monodb
 =======
 >>>>>>> c00a9d8 (Version 3.3)
+=======
+>>>>>>> 285ceb2 (Version 4 -- AJAX)
 const MongoClient = require('mongodb').MongoClient;
 
 const ID= '???';
@@ -20,6 +23,7 @@ MongoClient.connect(URL, { useUnifiedTopology: true }, function (error, client) 
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Install express
 const express = require('express');
 const app = express();
@@ -30,13 +34,18 @@ app.use(express.urlencoded({extended: true}))
 
 // callback functions
 =======
+=======
+>>>>>>> 285ceb2 (Version 4 -- AJAX)
 const express = require('express');
 const app = express();
 const bodyParser= require('body-parser')
 app.use(bodyParser.urlencoded({extended: true})) 
 app.use(express.urlencoded({extended: true})) 
 app.set('view engine', 'ejs');
+<<<<<<< HEAD
 >>>>>>> c00a9d8 (Version 3.3)
+=======
+>>>>>>> 285ceb2 (Version 4 -- AJAX)
 
 app.listen(5500, function() {
     console.log('listening on 5500')
@@ -67,4 +76,17 @@ app.get('/list', function(req, resp){
         console.log(res)
         resp.render('list.ejs', { posts: res })
     })
+<<<<<<< HEAD
 });
+=======
+});
+
+app.delete('/delete', function(req, resp){
+    req.body._id = parseInt(req.body._id); // the body._id is stored in string, so change it into an int value
+    console.log(req.body._id);
+    db.collection('post').deleteOne(req.body, function(error, res) {
+        console.log('Delete complete')
+    })
+    resp.send('Delete complete')
+}); 
+>>>>>>> 285ceb2 (Version 4 -- AJAX)
