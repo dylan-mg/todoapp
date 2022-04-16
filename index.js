@@ -98,7 +98,7 @@ app.post('/tasks', function(req, resp) {
 
                     // generate response
                     resp.contentType("application/json");
-                    resp.status(200);
+                    resp.status(201);
                     resp.send(JSON.stringify({ message: "Stored to Mongodb OK" }));
                 });
             });
@@ -111,27 +111,36 @@ app.post('/tasks', function(req, resp) {
 app.delete('/tasks', function(req, resp) {
     req.body._id = parseInt(req.body._id); // the body._id is stored in string, so change it into an int value
     console.log(req.body._id);
+
     db.collection('post').deleteOne(req.body, function(error, res) {
-            console.log('Delete complete')
-        })
-        // Fix the bug - the totalPost is not decreased by 1
-    db.collection('counter').updateOne({ name: 'Total Post' }, { $dec: { totalPost: 1 } }, function(error, res) {
-        if (error) { return console.log(error) }
-        resp.send('Counter decreased by 1');
-    })
+        console.log('Delete complete');
+
+        resp.status(200);
+        resp.send("Successfully Deleted");
+    });
 });
 
 // API [ /tasks ]
 //* PUT
+// TODO
+// Updates a current existing task
+// can be used to mark as complete 
 app.put('/tasks', function(req, resp) {
-    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, { $set: { title: req.body.title, date: req.body.date } }, function() {
-        console.log('app.put.edit: Update complete')
-        resp.redirect('/tasks')
+    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
+        $set: {
+            title: req.body.title,
+            date: req.body.date,
+            desc: req.body.date
+        }
+    }, function() {
+        console.log('app.put.edit: Update complete');
+        resp.redirect('/tasks');
     });
 });
 
 // DOOR [ /tasks/:id ]
 //* GET
+// TODO
 app.get('/tasks/:id', function(req, resp) {
     // req.params.id contains the value of :d
     db.collection('post').findOne({ _id: parseInt(req.params.id) }, function(error, res) {
@@ -154,6 +163,7 @@ app.get('/tasks/:id', function(req, resp) {
 // DOOR [ /edit ]
 // API [ /edit ]
 //* POST
+// TODO
 // No clue why this is here unless it's meant to function as a redirectors
 app.post('/edit', function(req, resp) {
     console.log(req.body.id)
@@ -162,6 +172,7 @@ app.post('/edit', function(req, resp) {
 
 // DOOR [ /edit/:id ]
 //* GET
+// TODO
 app.get('/edit/:id', function(req, resp) {
     console.log(req.params)
     db.collection('post').findOne({ _id: parseInt(req.params.id) }, function(error, res) {
