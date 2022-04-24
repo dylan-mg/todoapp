@@ -6,6 +6,7 @@ const port = 5500;
 
 // set up and connect to mongo DB client
 const MongoClient = require('mongodb').MongoClient;
+const Db = require('mongodb').Db;
 
 // URL parts
 const ID = 'browserMan';
@@ -16,10 +17,21 @@ const NET = 'asecourses.lzeux.mongodb.net';
 const URL = `mongodb+srv://${ID}:${PASSWORD}@${NET}/${DATABASE}?retryWrites=true&w=majority`
 
 // access database and set up object for reference
-var db;
+/**
+ * @type {Db} MongoDB database Object
+ */
+let db;
+console.log("Please Wait for MongoDB to connect");
 MongoClient.connect(URL, { useUnifiedTopology: true }, function(error, client) {
-    if (error) return console.log(error)
-    db = client.db('todoapp');
+    try {
+        if (error) { return console.log(error) };
+        db = client.db('todoapp');
+        db.command({ ping: 1 });
+        console.log("MongoDB Connected");
+    } catch (tryErr) {
+        console.log(tryErr);
+        console.log("Error connecting");
+    }
 });
 
 // require all npm packages
@@ -40,7 +52,7 @@ app.use(methodOverride('_method'));
 
 // start server
 app.listen(port, function() {
-    console.log(`listening on ${port}`)
+    console.log(`listening on ${port}`);
 });
 
 // DOOR [ / ]
@@ -64,15 +76,12 @@ app.get('/tasks', function(req, resp) {
     });
 });
 
-// API [ /tasks ]
-//* POST
+// API POST
 app.post('/tasks', function(req, resp) {
     // check for empty body
-    // TODO figure out why this doesn't work with empty objects
     if (req.body == {} || req.body == "{}") {
         // send error response
-        resp.status(400);
-        resp.send("Bad Request");
+        resp.status(400).send("Bad Request");
     } else {
         db.collection('counter').findOne({ name: 'Total Post' }, function(countError, countRes) {
             // get and store total post count
@@ -95,7 +104,7 @@ app.post('/tasks', function(req, resp) {
 
                     // Log updated data
                     console.log("Data that was logged: ");
-                    console.log(req.body);
+                    console.table(req.body);
 
                     // generate response
                     resp.redirect(301, "/tasks");
@@ -105,54 +114,33 @@ app.post('/tasks', function(req, resp) {
     }
 });
 
-// API [ /tasks ]
-//* DELETE
+// API DELETE
 app.delete('/tasks', function(req, resp) {
     req.body._id = parseInt(req.body._id); // the body._id is stored in string, so change it into an int value
     console.log(req.body._id);
 
     db.collection('post').deleteOne(req.body, function(error, res) {
-        console.log('Delete complete');
+        console.log(`Delete of task ${req.body._id} was successful`);
 
-        resp.status(200);
-        resp.send("Successfully Deleted");
-    });
-});
-
-// API [ /tasks ]
-//* PUT
-// TODO
-// Updates a current existing task
-// can be used to mark as complete 
-app.put('/tasks', function(req, resp) {
-    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
-        $set: {
-            title: req.body.title,
-            date: req.body.date,
-            desc: req.body.date
-        }
-    }, function() {
-        console.log('app.put.edit: Update complete');
-        resp.redirect('/tasks');
+        resp.status(200).send("Successfully Deleted");
     });
 });
 
 // DOOR [ /tasks/:id ]
 //* GET
-// TODO
 app.get('/tasks/:id', function(req, resp) {
     // req.params.id contains the value of :d
     db.collection('post').findOne({ _id: parseInt(req.params.id) }, function(error, res) {
         if (error) {
-            console.log(error);
+            console.error(error);
             resp.status(500).send({ error: 'Error from db.collection().findOne()' })
         } else {
-            console.log('app.get.detail: Update complete')
-            console.log({ data: res });
+            console.log(`app.get.detail: task ${req.params.id} retrieved`);
+            console.table({ data: res });
             if (res != null) {
-                resp.render('detail.ejs', { data: res })
+                resp.render('detail.ejs', { data: res });
             } else {
-                console.log(error);
+                console.error(error);
                 resp.status(500).send({ error: 'result is null' })
             }
         }
@@ -160,33 +148,75 @@ app.get('/tasks/:id', function(req, resp) {
 });
 
 // DOOR [ /edit ]
-// API [ /edit ]
-//* POST
-// TODO
-// No clue why this is here unless it's meant to function as a redirectors
+// API POST
+// Redirector for post req in detail page
 app.post('/edit', function(req, resp) {
-    console.log(req.body.id)
+    console.log(`edit request to ${req.body.id}`);
     resp.redirect(`/edit/${req.body.id}`)
+});
+
+// API PUT
+// Updates a current existing task
+// can be used to mark as complete 
+app.put('/edit', function(req, resp) {
+    console.table(req.body);
+    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
+        $set: {
+            title: req.body.title,
+            date: req.body.date,
+            description: req.body.description
+        }
+    }, function(err, result) {
+        if (err) {
+            console.log(err);
+            resp.redirect(`/tasks/${req.body.id}`);
+        } else if (result.matchedCount > 0) {
+            console.log(result);
+            console.log('app.put.edit: Update complete');
+            resp.redirect(`/tasks/${req.body.id}`);
+        } else {
+            resp.redirect(`/tasks`);
+        }
+    });
 });
 
 // DOOR [ /edit/:id ]
 //* GET
-// TODO
 app.get('/edit/:id', function(req, resp) {
-    console.log(req.params)
+    console.table(req.params);
     db.collection('post').findOne({ _id: parseInt(req.params.id) }, function(error, res) {
         if (error) {
-            console.log(error);
+            console.error(error);
             resp.status(500).send({ error: 'Error from db.collection().findOne()' })
         } else {
-            console.log({ data: res });
+            console.log(`app.get.edit: task ${req.params.id} retrieved for editing`);
             if (res != null) {
-                console.log({ data: res })
+                console.table({ data: res });
+                console.log("--------------------------------------------");
+
                 resp.render('edit.ejs', { data: res })
             } else {
-                console.log(error);
+                console.error(error);
                 resp.status(500).send({ error: 'result is null' })
             }
         }
-    })
+    });
 });
+
+/* Redirector for errors */
+app.use((err, req, res, next) => {
+    console.log(`${err.name} connecting to ${req.url} -- `);
+    if (db == undefined) {
+        console.error(err.message);
+        console.error("Database is not connected");
+        // wait a bit, then try again
+        setTimeout(() => {
+            res.redirect(307, req.url);
+        }, 500);
+    } else {
+        // some other error, log it and redirect to main page just in case
+        console.error(err);
+        res.redirect(308, "/");
+    }
+    console.log("--------------------------------------------");
+})
