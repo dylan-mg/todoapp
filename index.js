@@ -60,8 +60,8 @@ app.get('/write', function(req, resp) {
 //- GET POST DELETE PUT
 app.get('/tasks', function(req, resp) {
     db.collection('post').find().toArray(function(error, res) {
-        resp.render('list.ejs', { posts: res })
-    })
+        resp.render('list.ejs', { posts: res });
+    });
 });
 
 // API [ /tasks ]
@@ -94,12 +94,11 @@ app.post('/tasks', function(req, resp) {
                     if (incError) { return console.log(incError) }
 
                     // Log updated data
-                    console.log("Data that was logged: " + req.body);
+                    console.log("Data that was logged: ");
+                    console.log(req.body);
 
                     // generate response
-                    resp.contentType("application/json");
-                    resp.status(201);
-                    resp.send(JSON.stringify({ message: "Stored to Mongodb OK" }));
+                    resp.redirect(301, "/tasks");
                 });
             });
         });

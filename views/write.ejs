@@ -17,7 +17,7 @@
         <h4 class="container mt-4"><strong>Write Page</strong></h4>
 
         <div class="container mt-3">
-            <form id="formMan">
+            <form id="formMan" action="/tasks?_method=POST" method="POST">
                 <div class="form-group my-2">
                     <label>What to do today</label>
                     <input type="text" class="form-control" name="title" />
@@ -50,23 +50,10 @@
                     date: (e.target[1].value).toString(),
                     description: e.target[2].value
                 };
-                $.ajax({
-                    type: "POST",
-                    url: "/tasks",
-                    contentType: "application/json",
-                    data: JSON.stringify(sendData),
-                    success: (data, stat, xhr) => {
-                        console.log("object");
-                        console.log(data);
-                        console.log(stat);
-                        console.log(xhr);
-                    },
-                    error: (data, stat, err) => {
-                        console.log(data);
-                        console.log(stat);
-                        console.log(err);
-                    }
-                });
+
+                // data processing goes here
+
+                e.target.submit();
             });
         </script>
 </body>
