@@ -58,7 +58,7 @@ app.listen(port, function() {
 // DOOR [ / ]
 //* GET
 app.get('/', function(req, resp) {
-    resp.redirect("./tasks")
+    resp.redirect("./tasks");
 });
 
 // DOOR [ /write ]
@@ -203,6 +203,14 @@ app.get('/edit/:id', function(req, resp) {
     });
 });
 
+// DOOR [ /todo ]
+//*
+app.get("/todo", (req, resp) => {
+    db.collection('post').find().toArray(function(error, res) {
+        resp.render('todo.ejs', { posts: res });
+    });
+});
+
 /* Redirector for errors */
 app.use((err, req, res, next) => {
     console.log(`${err.name} connecting to ${req.url} -- `);
@@ -216,7 +224,10 @@ app.use((err, req, res, next) => {
     } else {
         // some other error, log it and redirect to main page just in case
         console.error(err);
-        res.redirect(308, "/");
+        console.table(req.body)
+        res.redirect(308, req.url);
     }
     console.log("--------------------------------------------");
 })
+
+let test = new Date();
