@@ -9,12 +9,27 @@ const MongoClient = require('mongodb').MongoClient;
 const Db = require('mongodb').Db;
 
 // URL parts
-const ID = 'browserMan';
-const PASSWORD = 'TXabiw8QTNpgjExJ';
-const DATABASE = 'todoapp';
-const NET = 'asecourses.lzeux.mongodb.net';
+const ID = 'test';
+const PASSWORD = 'test';
+const DATABASE = 'toyproject';
+const NET = 'toyproject.kk1zg.mongodb.net';
 
 const URL = `mongodb+srv://${ID}:${PASSWORD}@${NET}/${DATABASE}?retryWrites=true&w=majority`
+
+//mongodb+srv://test:test@toyproject.kk1zg.mongodb.net/toyproject?retryWrites=true&w=majority
+
+// function to get the data from the database, add sample data to all of it
+function updateRecords(db) {
+    db.collection('post').updateMany({}, {
+        $set: {
+            date: "01-01-2023",
+            status: false,
+            description: "Sample Description"
+        }
+    }, (err, result) => {
+        console.log(result);
+    });
+}
 
 // access database and set up object for reference
 /**
@@ -25,7 +40,7 @@ console.log("Please Wait for MongoDB to connect");
 MongoClient.connect(URL, { useUnifiedTopology: true }, function(error, client) {
     try {
         if (error) { return console.log(error) };
-        db = client.db('todoapp');
+        db = client.db('toyproject');
         db.command({ ping: 1 });
         console.log("MongoDB Connected");
     } catch (tryErr) {
@@ -33,6 +48,7 @@ MongoClient.connect(URL, { useUnifiedTopology: true }, function(error, client) {
         console.log("Error connecting");
     }
 });
+
 
 // require all npm packages
 const bodyParser = require('body-parser');
@@ -144,7 +160,7 @@ app.get('/tasks/:id', function(req, resp) {
                 resp.status(500).send({ error: 'result is null' })
             }
         }
-    })
+    });
 });
 
 // DOOR [ /edit ]
@@ -204,10 +220,29 @@ app.get('/edit/:id', function(req, resp) {
 });
 
 // DOOR [ /todo ]
-//*
+// * GET
+// load updated todo list
 app.get("/todo", (req, resp) => {
     db.collection('post').find().toArray(function(error, res) {
         resp.render('todo.ejs', { posts: res });
+    });
+});
+
+// API PUT
+// check off a task as completed
+app.put("/todo", (req, resp) => {
+    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
+        $set: {
+            status: req.body.val
+        }
+    }, function(error, result) {
+        if (error || result.matchedCount == 0) {
+            console.log(error);
+            console.log(result);
+            resp.json({ "message": "No updates made" });
+        } else {
+            resp.json({ "message": "Records Updated" });
+        }
     });
 });
 
@@ -224,10 +259,8 @@ app.use((err, req, res, next) => {
     } else {
         // some other error, log it and redirect to main page just in case
         console.error(err);
-        console.table(req.body)
+        console.table(req.body);
         res.redirect(308, req.url);
     }
     console.log("--------------------------------------------");
-})
-
-let test = new Date();
+});

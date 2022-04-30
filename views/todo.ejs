@@ -19,52 +19,71 @@
 
 <body>
     <%- include('nav.html') %>
-        <main class="mx-0 p-0 mx-md-5 px-md-4 d-flex justify-content-center flex-column mb-4">
-            <ul class="list-group mx-0 p-4 mx-md-4 container">
+        <main class="mx-5 p-0 my-4">
+            <h3>To-Do</h3>
+            <ul class="list-group mx-lg-0 container mb-4" id="todolist">
                 <% for (var i=0; i < posts.length; i++){ %>
-                    <li class="taskList-item row py-1 px-3">
-                        <input type="checkbox" name="cbox-<%- i %>" id="cbox-<%- i %>" class="form-check-input p-2 col-1">
-                        <a href="/tasks/<%- posts[i]._id %>" class="text-decoration-none link-dark col-11">
-                            <label for="cbox<%- i %>" class="form-check-label row">
-                                <div class="listDate text-muted col-md-2" id="ld-<%- i %>">
+                    <li class="taskList-item row py-1 px-3" id="taskList-item-<%- posts[i]._id %>">
+                        <input type="checkbox" name="cbox-<%- i %>" class="form-check-input p-2 col-1" value="<%- posts[i]._id %>" <% if (posts[i].status==true) { %>checked
+                        <% } else {} %> >
+                            <a href="/tasks/<%- posts[i]._id %>" class="text-decoration-none link-dark col-11">
+                                <hr class="d-none d-lg-block position-relative m-0 text-secondary visually-hidden">
+                                <label for="cbox<%- i %>" class="form-check-label row">
+                                <div class="listDate text-muted col-md-2 col-xl-1" id="ld-<%- i %>">
                                     <% var dat = new Date(posts[i].date) %>
                                     <%= dat.getUTCMonth() + 1 %>/<%= dat.getUTCDate() %>/<%= dat.getUTCFullYear() %>
                                 </div>
-                                <div class="listTitle fw-bold clamper col-md-3" id="lt-<%- i %>">
+                                <div class="listTitle fw-bold clamper col-md-3 col-xl-2" id="lt-<%- i %>">
                                     <%- posts[i].title %>
                                 </div>
-                                <div class="listDesc clamper col-md-7" id="lt-<%- i %>">
+                                <div class="listDesc clamper col-md-7 col-xl-9" id="lt-<%- i %>">
                                     <%- posts[i].description %>
                                 </div>
                             </label>
-                        </a>
+                            </a>
                     </li>
                     <% } %>
+            </ul>
+
+            <h3>Done</h3>
+            <ul id="todone" class="list-group mx-lg-0 container">
+
             </ul>
         </main>
 
         <!-- Optional JavaScript -->
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="/public/js/todo.js"></script>
         <script>
-            $(".delete").click(function(e) {
+            let checks = $(".form-check-input");
+            checks.click((e) => {
+                let reqInfo = {
+                    id: e.target.value,
+                    val: e.target.checked
+                }
                 $.ajax({
-                        method: "DELETE",
-                        url: "/tasks",
-                        // dataset.id is from: data-id= posts[i]._id
-                        data: {
-                            _id: e.target.dataset.id
-                        },
-                    })
-                    .done((res) => {
-                        // we need this form to use $this
-                        $(this).parent("li").fadeOut(); // function that erases the task
-                        console.log("killed");
-                    })
-                    .fail((xhr, code, err) => {
-                        // failure
-                    });
+                    type: "PUT",
+                    url: "/todo",
+                    data: JSON.stringify(reqInfo),
+                    contentType: "application/json",
+                    success: function(response) {
+                        console.log(response);
+                        taskCheck(reqInfo.id, reqInfo.val);
+                    }
+                });
             });
+
+
+            for (check of checks) {
+                // if checked, move to done
+                if (check.checked) {
+                    // true for #todone
+                    taskCheck(check.value, true);
+                } else {
+                    taskCheck(check.value, false);
+                }
+            }
         </script>
 </body>
 
